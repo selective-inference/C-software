@@ -20,8 +20,8 @@ int solve_qp(double *nndef_ptr,          /* A non-negative definite matrix */
 	     double objective_tol,       /* precision for checking relative decrease in objective value */
 	     double parameter_tol,       /* precision for checking relative convergence of parameter */
 	     int max_active,             /* Upper limit for size of active set -- otherwise break */ 
-	     int objective_stop,         /* Break based on convergence of objective value? */
              int kkt_stop,               /* Break based on KKT? */
+	     int objective_stop,         /* Break based on convergence of objective value? */
 	     int param_stop);            /* Break based on parameter convergence? */
 
 int check_KKT_qp(double *theta,        /* current theta */
@@ -49,8 +49,8 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 	       double objective_tol,       /* precision for checking relative decrease in objective value */
 	       double parameter_tol,       /* precision for checking relative convergence of parameter */
 	       int max_active,             /* Upper limit for size of active set -- otherwise break */ 
-	       int objective_stop,         /* Break based on convergence of objective value? */
 	       int kkt_stop,               /* Break based on KKT? */
+	       int objective_stop,         /* Break based on convergence of objective value? */
 	       int param_stop);            /* Break based on parameter convergence? */
 
 int check_KKT_wide(double *theta_ptr,        /* current theta */

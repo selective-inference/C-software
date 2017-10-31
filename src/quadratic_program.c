@@ -275,8 +275,8 @@ int solve_qp(double *nndef_ptr,          /* A non-negative definite matrix */
 	     double objective_tol,       /* precision for checking relative decrease in objective value */
 	     double parameter_tol,       /* precision for checking relative convergence of parameter */
 	     int max_active,             /* Upper limit for size of active set -- otherwise break */ 
-	     int objective_stop,         /* Break based on convergence of objective value? */
              int kkt_stop,               /* Break based on KKT? */
+	     int objective_stop,         /* Break based on convergence of objective value? */
 	     int param_stop)             /* Break based on parameter convergence? */
 {
 
