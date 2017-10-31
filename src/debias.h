@@ -3,6 +3,8 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+void multiply_by_2(double *X, int nval);
+
 int solve_qp(double *nndef_ptr,          /* A non-negative definite matrix */
 	     double *linear_func_ptr,    /* Linear term in objective */
 	     double *nndef_diag_ptr,     /* Diagonal of nndef */

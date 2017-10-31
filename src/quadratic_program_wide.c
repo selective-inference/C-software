@@ -13,6 +13,18 @@
 
 // Throughout X is a design matrix
 
+void multiply_by_2(double *X,
+		   int nval) {
+  int ival;
+  double *X_ptr;
+
+  for (ival=0; ival<nval; ival++) {
+    X_ptr = ((double *) X) + ival;
+    *X_ptr = (*X_ptr) * 2.;
+  }
+
+}
+
 double objective_wide(double *X_theta_ptr,     /* Fitted values */
 		      double *linear_func_ptr, /* Linear term in objective */
 		      int *ever_active_ptr,    /* Ever active set: 0-based */ 
