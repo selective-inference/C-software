@@ -62,9 +62,10 @@ int check_KKT_wide(double *theta_ptr,        /* current theta */
 		   int *need_update_ptr,     /* Which coordinates need to be updated? */
 		   int nfeature,             /* how many columns in X */
 		   int ncase,                /* how many rows in X */
+		   int column_major,         /* If 1, then X is column major, else row major */
 		   double *bound_ptr,        /* Lagrange multiplers for \ell_1 */
 		   double ridge_term,        /* Ridge / ENet term */
-		   double tol);               /* precision for checking KKT conditions */        
+		   double tol);              /* precision for checking KKT conditions */        
   
 void update_gradient_wide(double *gradient_ptr,     /* X^TX/ncase times theta + linear_func */
 			  double *X_theta_ptr,      /* Current fitted values */
@@ -72,7 +73,9 @@ void update_gradient_wide(double *gradient_ptr,     /* X^TX/ncase times theta + 
 			  double *linear_func_ptr,  /* Linear term in objective */   
 			  int *need_update_ptr,     /* Which coordinates need to be updated? */
 			  int nfeature,             /* how many columns in X */
-			  int ncase);               /* how many rows in X */
+			  int ncase,
+			  int column_major);       /* If 1, then X is column major, else row major */
+
 
 #ifdef __cplusplus
 }  /* extern "C" */
