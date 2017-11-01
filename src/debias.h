@@ -40,6 +40,7 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 	       int *nactive_ptr,           /* Size of ever active set */
 	       int ncase,                  /* How many rows in X */
 	       int nfeature,               /* How many columns in X */
+	       int column_major,           /* If 1, then X is column major, else row major */
 	       double *bound_ptr,          /* Lagrange multipliers */
 	       double ridge_term,          /* Ridge / ENet term */
 	       double *theta_ptr,          /* current value */
