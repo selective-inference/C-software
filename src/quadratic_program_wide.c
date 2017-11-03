@@ -424,20 +424,18 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
   double delta;
   double *theta_ptr_tmp, *theta_old_ptr_tmp;
 
-  if (objective_stop) {
+  new_value = objective_wide(X_theta_ptr,
+			     linear_func_ptr,
+			     ever_active_ptr,
+			     nactive_ptr,
+			     ncase,
+			     nfeature,
+			     bound_ptr,
+			     ridge_term,
+			     theta_ptr);
 
-    old_value = objective_wide(X_theta_ptr,
-			       linear_func_ptr,
-			       ever_active_ptr,
-			       nactive_ptr,
-			       ncase,
-			       nfeature,
-			       bound_ptr,
-			       ridge_term,
-			       theta_ptr);
-    new_value = old_value;
+  old_value = new_value + 2000000000; // hack for a big number... should do better
 
-  }
 
   for (iter=0; iter<maxiter; iter++) {
 
