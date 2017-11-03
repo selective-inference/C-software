@@ -40,7 +40,6 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 	       int *nactive_ptr,           /* Size of ever active set */
 	       int ncase,                  /* How many rows in X */
 	       int nfeature,               /* How many columns in X */
-	       int column_major,           /* If 1, then X is column major, else row major */
 	       double *bound_ptr,          /* Lagrange multipliers */
 	       double ridge_term,          /* Ridge / ENet term */
 	       double *theta_ptr,          /* current value */
@@ -62,7 +61,6 @@ int check_KKT_wide(double *theta_ptr,        /* current theta */
 		   int *need_update_ptr,     /* Which coordinates need to be updated? */
 		   int nfeature,             /* how many columns in X */
 		   int ncase,                /* how many rows in X */
-		   int column_major,         /* If 1, then X is column major, else row major */
 		   double *bound_ptr,        /* Lagrange multiplers for \ell_1 */
 		   double ridge_term,        /* Ridge / ENet term */
 		   double tol);              /* precision for checking KKT conditions */        
@@ -73,8 +71,7 @@ void update_gradient_wide(double *gradient_ptr,     /* X^TX/ncase times theta + 
 			  double *linear_func_ptr,  /* Linear term in objective */   
 			  int *need_update_ptr,     /* Which coordinates need to be updated? */
 			  int nfeature,             /* how many columns in X */
-			  int ncase,
-			  int column_major);       /* If 1, then X is column major, else row major */
+			  int ncase);               /* how many rows in X */
 
 
 #ifdef __cplusplus

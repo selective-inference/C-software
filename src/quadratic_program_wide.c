@@ -77,8 +77,7 @@ double compute_gradient_coord(double *gradient_ptr,        /* Gradient -- one co
 			      int *need_update_ptr,        /* Which coordinates need to be updated? */
 			      int coord,                   /* Coordinate we are trying to update */
 			      int ncase,                   /* How many rows in X */
-			      int nfeature,                /* How many columns in X */
-			      int column_major)            /* If 1, then X is column major, else row major */
+			      int nfeature)                /* How many columns in X */
 {
 
   double *gradient_ptr_tmp;
@@ -95,11 +94,11 @@ double compute_gradient_coord(double *gradient_ptr,        /* Gradient -- one co
   if (*need_update_ptr_tmp == 1) {
 
     for (icase=0; icase<ncase; icase++) {
-      if (column_major == 1) {
-	X_ptr_tmp = ((double *) X_ptr + coord * ncase + icase);
-      } else {
-	X_ptr_tmp = ((double *) X_ptr + icase * nfeature + coord);
-      }
+#ifdef COLUMN_MAJOR_ORDER
+      X_ptr_tmp = ((double *) X_ptr + coord * ncase + icase);
+#else
+      X_ptr_tmp = ((double *) X_ptr + icase * nfeature + coord);
+#endif
       X_theta_ptr_tmp = ((double *) X_theta_ptr + icase);
       value += (*X_ptr_tmp) * (*X_theta_ptr_tmp);
     }
@@ -161,13 +160,12 @@ void update_gradient_wide(double *gradient_ptr,     /* X^TX/ncase times theta + 
 			  double *linear_func_ptr,  /* Linear term in objective */   
 			  int *need_update_ptr,     /* Which coordinates need to be updated? */
 			  int ncase,                /* how many rows in X */
-			  int nfeature,             /* how many columns in X */
-			  int column_major)         /* If 1, then X is column major, else row major */
+			  int nfeature)             /* how many columns in X */
 {
   int ifeature;
 
   for (ifeature=0; ifeature<nfeature; ifeature++) {
-    compute_gradient_coord(gradient_ptr, X_theta_ptr, X_ptr, linear_func_ptr, need_update_ptr, ifeature, ncase, nfeature, column_major);
+    compute_gradient_coord(gradient_ptr, X_theta_ptr, X_ptr, linear_func_ptr, need_update_ptr, ifeature, ncase, nfeature);
   }
 
 }
@@ -180,7 +178,6 @@ int check_KKT_wide(double *theta_ptr,        /* current theta */
 		   int *need_update_ptr,     /* Which coordinates need to be updated? */
 		   int nfeature,             /* how many columns in X */
 		   int ncase,                /* how many rows in X */
-		   int column_major,         /* If 1, then X is column major, else row major */
 		   double *bound_ptr,        /* Lagrange multiplers for \ell_1 */
 		   double ridge_term,        /* Ridge / ENet term */
 		   double tol)               /* precision for checking KKT conditions */        
@@ -201,7 +198,7 @@ int check_KKT_wide(double *theta_ptr,        /* current theta */
 
     // Compute this coordinate of the gradient
 
-    gradient = compute_gradient_coord(gradient_ptr, X_theta_ptr, X_ptr, linear_func_ptr, need_update_ptr, ifeature, ncase, nfeature, column_major);
+    gradient = compute_gradient_coord(gradient_ptr, X_theta_ptr, X_ptr, linear_func_ptr, need_update_ptr, ifeature, ncase, nfeature);
 
     if ((*theta_ptr_tmp != 0) && (bound != 0)) { // these coordinates of gradients should be equal to -bound
       
@@ -233,7 +230,6 @@ int check_KKT_wide_active(int *ever_active_ptr,           /* Ever active set: 0-
 			  int *need_update_ptr,           /* Which coordinates need to be updated? */
 			  int nfeature,                   /* how many columns in X */
 			  int ncase,                      /* how many rows in X */
-			  int column_major,               /* If 1, then X is column major, else row major */
 			  double *bound_ptr,              /* Lagrange multipliers for \ell_1 */
 			  double ridge_term,              /* Ridge / ENet term */
 			  double tol)                     /* precision for checking KKT conditions */        
@@ -260,7 +256,7 @@ int check_KKT_wide_active(int *ever_active_ptr,           /* Ever active set: 0-
 
     // Compute this coordinate of the gradient
 
-    gradient = compute_gradient_coord(gradient_ptr, X_theta_ptr, X_ptr, linear_func_ptr, need_update_ptr, active_feature, ncase, nfeature, column_major);
+    gradient = compute_gradient_coord(gradient_ptr, X_theta_ptr, X_ptr, linear_func_ptr, need_update_ptr, active_feature, ncase, nfeature);
 
     if ((*theta_ptr_tmp != 0) && (bound != 0)) { // these coordinates of gradients should be equal to -bound
 
@@ -292,7 +288,6 @@ double update_one_coord_wide(double *X_ptr,               /* A design matrix*/
 			     int *need_update_ptr,        /* Whether a gradient coordinate needs update or not */
 			     int ncase,                   /* How many rows in X */
 			     int nfeature,                /* How many rows in X */
-			     int column_major,            /* If 1, then X is column major, else row major */
 			     double *bound_ptr,           /* Lagrange multipliers */
 			     double ridge_term,           /* Ridge / ENet term */
 			     double *theta_ptr,           /* current value */
@@ -315,7 +310,7 @@ double update_one_coord_wide(double *X_ptr,               /* A design matrix*/
   double *diagonal_ptr = ((double *) nndef_diag_ptr + coord);
   double diagonal_entry = *diagonal_ptr;
 
-  linear_term = compute_gradient_coord(gradient_ptr, X_theta_ptr, X_ptr, linear_func_ptr, need_update_ptr, coord, ncase, nfeature, column_major);
+  linear_term = compute_gradient_coord(gradient_ptr, X_theta_ptr, X_ptr, linear_func_ptr, need_update_ptr, coord, ncase, nfeature);
 
   theta_ptr_tmp = ((double *) theta_ptr + coord);
   old_value = *theta_ptr_tmp;
@@ -368,11 +363,11 @@ double update_one_coord_wide(double *X_ptr,               /* A design matrix*/
 
     for (icase=0; icase<ncase; icase++) {
       X_theta_ptr_tmp = ((double *) X_theta_ptr + icase);
-      if (column_major == 1) {
-        X_ptr_tmp = ((double *) X_ptr + coord * ncase + icase);
-      } else {
-        X_ptr_tmp = ((double *) X_ptr + icase * nfeature + coord);
-      }
+#ifdef COLUMN_MAJOR_ORDER
+      X_ptr_tmp = ((double *) X_ptr + coord * ncase + icase);
+#else
+      X_ptr_tmp = ((double *) X_ptr + icase * nfeature + coord);
+#endif
       *X_theta_ptr_tmp = (*X_theta_ptr_tmp) + delta * (*X_ptr_tmp);
     }
 
@@ -400,7 +395,6 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 	       int *nactive_ptr,           /* Size of ever active set */
 	       int ncase,                  /* How many rows in X */
 	       int nfeature,               /* How many columns in X */
-	       int column_major,           /* If 1, then X is column major, else row major */
 	       double *bound_ptr,          /* Lagrange multipliers */
 	       double ridge_term,          /* Ridge / ENet term */
 	       double *theta_ptr,          /* current value */
@@ -464,7 +458,6 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 				need_update_ptr,
 				ncase,
 				nfeature,
-				column_major,
 				bound_ptr,
 				ridge_term,
 				theta_ptr,
@@ -485,7 +478,6 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 				  need_update_ptr,
 				  nfeature,
 				  ncase,
-				  column_major,
 				  bound_ptr,
 				  ridge_term,
 				  kkt_tol) == 1) {
@@ -505,7 +497,6 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 			 need_update_ptr,
 			 nfeature,
 			 ncase,
-			 column_major,
 			 bound_ptr,
 			 ridge_term,
 			 kkt_tol) == 1) {
@@ -527,7 +518,6 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 			    need_update_ptr,
 			    ncase,
 			    nfeature,
-			    column_major,
 			    bound_ptr,
 			    ridge_term,
 			    theta_ptr,
@@ -546,7 +536,6 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 			 need_update_ptr,
 			 nfeature,
 			 ncase,
-			 column_major,
 			 bound_ptr,
 			 ridge_term,
 			 kkt_tol) == 1) {
