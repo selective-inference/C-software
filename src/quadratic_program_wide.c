@@ -1,5 +1,5 @@
 #include <math.h> // for fabs
-// #include <stdio.h>
+
 // Find an approximate row of \hat{nndef}^{-1}
 
 // Solves a dual version of problem (4) of https://arxiv.org/pdf/1306.3171.pdf
@@ -96,7 +96,6 @@ double compute_gradient_coord(double *gradient_ptr,        /* Gradient -- one co
     for (icase=0; icase<ncase; icase++) {
 #ifdef COLUMN_MAJOR_ORDER
       X_ptr_tmp = ((double *) X_ptr + coord * ncase + icase);
-      //      fprintf(stderr, "hereb %d %d %d %d\n", 2, icase, ncase, nfeature);
 #else
       X_ptr_tmp = ((double *) X_ptr + icase * nfeature + coord);
 #endif
@@ -366,7 +365,6 @@ double update_one_coord_wide(double *X_ptr,               /* A design matrix*/
       X_theta_ptr_tmp = ((double *) X_theta_ptr + icase);
 #ifdef COLUMN_MAJOR_ORDER
       X_ptr_tmp = ((double *) X_ptr + coord * ncase + icase);
-      //      fprintf(stderr, "here %d %d %d %d\n", 1, icase, ncase, nfeature);
 #else
       X_ptr_tmp = ((double *) X_ptr + icase * nfeature + coord);
 #endif
