@@ -44,7 +44,7 @@ double log_density_gaussian(double noise_scale,             // Scale of randomiz
     // Internal (i.e. data) contribution
     for (icol=0; icol<ninternal; icol++) {
       
-      fprintf(stderr, "here 1: %d %d %d %d %d\n", ndim, noptimization, ninternal, irow, icol);
+      // fprintf(stderr, "here 1: %d %d %d %d %d\n", ndim, noptimization, ninternal, irow, icol);
       internal_linear_ptr = ((double *) internal_linear + icol * ndim + irow);
       internal_state_ptr = ((double *) internal_state + icol);
 
@@ -54,7 +54,7 @@ double log_density_gaussian(double noise_scale,             // Scale of randomiz
     // Optimization contribution
     for (icol=0; icol<noptimization; icol++) {
       
-      fprintf(stderr, "here 2: %d %d %d %d %d\n", ndim, noptimization, ninternal, irow, icol);
+      // fprintf(stderr, "here 2: %d %d %d %d %d\n", ndim, noptimization, ninternal, irow, icol);
       optimization_linear_ptr = ((double *) optimization_linear + icol * ndim + irow);
       optimization_state_ptr = ((double *) optimization_state + icol);
 
@@ -144,7 +144,7 @@ double log_density_gaussian_conditional(double noise_scale,             // Scale
     // Optimization contribution
     for (icol=0; icol<noptimization; icol++) {
       
-      fprintf(stderr, "here 3: %d %d %d %d\n", ndim, noptimization, irow, icol);
+      // fprintf(stderr, "here 3: %d %d %d %d\n", ndim, noptimization, irow, icol);
 
       optimization_linear_ptr = ((double *) optimization_linear + icol * ndim + irow);
       optimization_state_ptr = ((double *) optimization_state + icol);
