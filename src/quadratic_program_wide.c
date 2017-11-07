@@ -1,5 +1,5 @@
 #include <math.h> // for fabs
-
+// #include <stdio.h>
 // Find an approximate row of \hat{nndef}^{-1}
 
 // Solves a dual version of problem (4) of https://arxiv.org/pdf/1306.3171.pdf
@@ -96,6 +96,7 @@ double compute_gradient_coord(double *gradient_ptr,        /* Gradient -- one co
     for (icase=0; icase<ncase; icase++) {
 #ifdef COLUMN_MAJOR_ORDER
       X_ptr_tmp = ((double *) X_ptr + coord * ncase + icase);
+      //      fprintf(stderr, "hereb %d %d %d %d\n", 2, icase, ncase, nfeature);
 #else
       X_ptr_tmp = ((double *) X_ptr + icase * nfeature + coord);
 #endif
@@ -159,8 +160,8 @@ void update_gradient_wide(double *gradient_ptr,     /* X^TX/ncase times theta + 
 			  double *X_ptr,            /* Sqrt of non-neg def matrix -- X^TX/ncase = nndef */
 			  double *linear_func_ptr,  /* Linear term in objective */   
 			  int *need_update_ptr,     /* Which coordinates need to be updated? */
-			  int ncase,                /* how many rows in X */
-			  int nfeature)             /* how many columns in X */
+			  int ncase,             /* how many rows in X */
+			  int nfeature)                /* how many columns in X */
 {
   int ifeature;
 
@@ -176,8 +177,8 @@ int check_KKT_wide(double *theta_ptr,        /* current theta */
 		   double *X_ptr,            /* Sqrt of non-neg def matrix -- X^TX/ncase = nndef */
 		   double *linear_func_ptr,  /* Linear term in objective */   
 		   int *need_update_ptr,     /* Which coordinates need to be updated? */
-		   int nfeature,             /* how many columns in X */
 		   int ncase,                /* how many rows in X */
+		   int nfeature,             /* how many columns in X */
 		   double *bound_ptr,        /* Lagrange multiplers for \ell_1 */
 		   double ridge_term,        /* Ridge / ENet term */
 		   double tol)               /* precision for checking KKT conditions */        
@@ -228,8 +229,8 @@ int check_KKT_wide_active(int *ever_active_ptr,           /* Ever active set: 0-
 			  double *X_ptr,                  /* Sqrt of non-neg def matrix -- X^TX/ncase = nndef */
 			  double *linear_func_ptr,        /* Linear term in objective */   
 			  int *need_update_ptr,           /* Which coordinates need to be updated? */
-			  int nfeature,                   /* how many columns in X */
 			  int ncase,                      /* how many rows in X */
+			  int nfeature,                   /* how many columns in X */
 			  double *bound_ptr,              /* Lagrange multipliers for \ell_1 */
 			  double ridge_term,              /* Ridge / ENet term */
 			  double tol)                     /* precision for checking KKT conditions */        
@@ -365,6 +366,7 @@ double update_one_coord_wide(double *X_ptr,               /* A design matrix*/
       X_theta_ptr_tmp = ((double *) X_theta_ptr + icase);
 #ifdef COLUMN_MAJOR_ORDER
       X_ptr_tmp = ((double *) X_ptr + coord * ncase + icase);
+      //      fprintf(stderr, "here %d %d %d %d\n", 1, icase, ncase, nfeature);
 #else
       X_ptr_tmp = ((double *) X_ptr + icase * nfeature + coord);
 #endif
@@ -474,8 +476,8 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 				  X_ptr,
 				  linear_func_ptr,
 				  need_update_ptr,
-				  nfeature,
 				  ncase,
+				  nfeature,
 				  bound_ptr,
 				  ridge_term,
 				  kkt_tol) == 1) {
@@ -493,8 +495,8 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 			 X_ptr,
 			 linear_func_ptr,
 			 need_update_ptr,
-			 nfeature,
 			 ncase,
+			 nfeature,
 			 bound_ptr,
 			 ridge_term,
 			 kkt_tol) == 1) {
@@ -532,8 +534,8 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 			 X_ptr,
 			 linear_func_ptr,
 			 need_update_ptr,
-			 nfeature,
 			 ncase,
+			 nfeature,
 			 bound_ptr,
 			 ridge_term,
 			 kkt_tol) == 1) {

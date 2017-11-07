@@ -1,4 +1,5 @@
 #include <math.h> // for fabs
+// #include <stdio.h>
 
 // Augmented density for randomized LASSO after
 // Gaussian randomization
@@ -37,12 +38,14 @@ double log_density_gaussian(double noise_scale,             // Scale of randomiz
 
     // Compute the irow-th entry of the ndim vector
 
+    //    fprintf(stderr, "here %d\n", 1);
     offset_ptr = ((double *) offset + irow);
     reconstruction = *offset_ptr;
 
     // Internal (i.e. data) contribution
     for (icol=0; icol<ninternal; icol++) {
       
+      //    fprintf(stderr, "here %d\n", 2);
       internal_linear_ptr = ((double *) internal_linear + icol * ndim + irow);
       internal_state_ptr = ((double *) internal_state + icol);
 
@@ -52,6 +55,7 @@ double log_density_gaussian(double noise_scale,             // Scale of randomiz
     // Optimization contribution
     for (icol=0; icol<noptimization; icol++) {
       
+      //      fprintf(stderr, "here %d\n", 3);
       optimization_linear_ptr = ((double *) optimization_linear + icol * ndim + irow);
       optimization_state_ptr = ((double *) optimization_state + icol);
 
@@ -87,12 +91,15 @@ double log_density_laplace(double noise_scale,             // Scale of randomiza
 
     // Compute the irow-th entry of the ndim vector
 
+    //    fprintf(stderr, "here %d\n", 4);
     offset_ptr = ((double *) offset + irow);
     reconstruction = *offset_ptr;
 
     // Internal (i.e. data) contribution
     for (icol=0; icol<ninternal; icol++) {
       
+      //    fprintf(stderr, "here %d\n", 5);
+
       internal_linear_ptr = ((double *) internal_linear + icol * ndim + irow);
       internal_state_ptr = ((double *) internal_state + icol);
 
@@ -141,6 +148,7 @@ double log_density_gaussian_conditional(double noise_scale,             // Scale
     // Optimization contribution
     for (icol=0; icol<noptimization; icol++) {
       
+      //      fprintf(stderr, "here %d %d %d %d %d\n", 6, icol, noptimization, ndim, irow);
       optimization_linear_ptr = ((double *) optimization_linear + icol * ndim + irow);
       optimization_state_ptr = ((double *) optimization_state + icol);
 
@@ -176,6 +184,7 @@ double log_density_laplace_conditional(double noise_scale,             // Scale 
 
     // Optimization contribution
     for (icol=0; icol<noptimization; icol++) {
+      //    fprintf(stderr, "here %d\n", 7);
       
       optimization_linear_ptr = ((double *) optimization_linear + icol * ndim + irow);
       optimization_state_ptr = ((double *) optimization_state + icol);
