@@ -1,5 +1,4 @@
-#include <R.h>
-#include <Rmath.h>
+#include <math.h>
 
 // Matrices are stored as vectors, in column-major order
 
@@ -164,13 +163,19 @@ void maketri1(double *y, double *A, double *R, int *mp, int *np, int *kp) {
 // Make the R factor upper triangular, by Givens rotating its 
 // columns. Here A is m x n, and R is m x n with rank(R) = min(m,n)-k
 void maketri2(double *y, double *A, double *R, int *mp, int *np, int *kp) {
-  int m,n,k,r,d,i,j;
+  int m,n,k,i,j;
   m = *mp;
   n = *np;
   k = *kp;
  
-  r = imin2(m,n);
-  d = imax2(n-m,0);
+  int r=m;
+  if (n < m) {
+    r = n;
+  }
+  int d = 0;
+  if (n-m>0) {
+    d = n-m;
+  }
 
   double c,s;
   for (i=r-k-1; i>=0; i--) {
