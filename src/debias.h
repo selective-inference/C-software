@@ -59,8 +59,8 @@ int check_KKT_wide(double *theta_ptr,        /* current theta */
 		   double *X_ptr,            /* Sqrt of non-neg def matrix -- X^TX/ncase = nndef */
 		   double *linear_func_ptr,  /* Linear term in objective */   
 		   int *need_update_ptr,     /* Which coordinates need to be updated? */
-		   int nfeature,             /* how many columns in X */
 		   int ncase,                /* how many rows in X */
+		   int nfeature,             /* how many columns in X */
 		   double *bound_ptr,        /* Lagrange multiplers for \ell_1 */
 		   double ridge_term,        /* Ridge / ENet term */
 		   double tol);              /* precision for checking KKT conditions */        
