@@ -46,6 +46,7 @@ double barrier_solve(double *gradient,                   // Gradient vector
 		     double *scaling,                    // Diagonal scaling matrix for log barrier
 		     int ndim,                           // Dimension of conjugate_arg, precision
 		     int max_iter,                       // Maximum number of iterations
+		     int min_iter,                       // Minimum number of iterations
 		     double value_tol,                   // Tolerance for convergence based on value
 		     double initial_step);               // Initial stepsize 
 
