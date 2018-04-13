@@ -15,7 +15,7 @@ int solve_qp(double *nndef_ptr,          /* A non-negative definite matrix */
 	     double bound,               /* feasibility parameter */
 	     double *theta,              /* current value */
 	     double *theta_old,          /* previous value */
-	     int maxiter,                /* max number of iterations */
+	     int max_iter,               /* max number of iterations */
 	     double kkt_tol,             /* precision for checking KKT conditions */
 	     double objective_tol,       /* precision for checking relative decrease in objective value */
 	     double parameter_tol,       /* precision for checking relative convergence of parameter */
@@ -44,7 +44,7 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 	       double ridge_term,          /* Ridge / ENet term */
 	       double *theta_ptr,          /* current value */
 	       double *theta_old_ptr,      /* previous value */
-	       int maxiter,                /* max number of iterations */
+	       int max_iter,               /* max number of iterations */
 	       double kkt_tol,             /* precision for checking KKT conditions */
 	       double objective_tol,       /* precision for checking relative decrease in objective value */
 	       double parameter_tol,       /* precision for checking relative convergence of parameter */

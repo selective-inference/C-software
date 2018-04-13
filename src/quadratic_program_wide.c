@@ -399,7 +399,7 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 	       double ridge_term,          /* Ridge / ENet term */
 	       double *theta_ptr,          /* current value */
 	       double *theta_old_ptr,      /* previous value */
-	       int maxiter,                /* max number of iterations */
+	       int max_iter,               /* max number of iterations */
 	       double kkt_tol,             /* precision for checking KKT conditions */
 	       double objective_tol,       /* precision for checking relative decrease in objective value */
 	       double parameter_tol,       /* precision for checking relative convergence of parameter */
@@ -437,7 +437,7 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
   old_value = new_value + 2000000000; // hack for a big number... should do better
 
 
-  for (iter=0; iter<maxiter; iter++) {
+  for (iter=0; iter<max_iter; iter++) {
 
     // Update the active variables first -- do this niter_active times
 
@@ -481,7 +481,6 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 				  kkt_tol) == 1) {
 	  break;
 	}
-
     }
 
     // Check KKT
@@ -587,8 +586,8 @@ int solve_wide(double *X_ptr,              /* Sqrt of non-neg def matrix -- X^TX
 
     // Check size of active set
 
-    if (*nactive_ptr >= max_active) {
-      break;
+    if ((*nactive_ptr > max_active) && (iter >= 1)) {    // Need at least two iterations before stopping based on active set
+        break;                                           // Should raise a warning that problem is not solved.
     }
 
   }

@@ -270,7 +270,7 @@ int solve_qp(double *nndef_ptr,          /* A non-negative definite matrix */
 	     double bound,               /* feasibility parameter */
 	     double *theta,              /* current value */
 	     double *theta_old,          /* previous value */
-	     int maxiter,                /* max number of iterations */
+	     int max_iter,                /* max number of iterations */
 	     double kkt_tol,             /* precision for checking KKT conditions */
 	     double objective_tol,       /* precision for checking relative decrease in objective value */
 	     double parameter_tol,       /* precision for checking relative convergence of parameter */
@@ -308,7 +308,7 @@ int solve_qp(double *nndef_ptr,          /* A non-negative definite matrix */
   }
 
 
-  for (iter=0; iter<maxiter; iter++) {
+  for (iter=0; iter<max_iter; iter++) {
 
     // Update the active variables first -- do this niter_active times
 
@@ -431,8 +431,8 @@ int solve_qp(double *nndef_ptr,          /* A non-negative definite matrix */
 
     // Check size of active set
 
-    if (*nactive_ptr >= max_active) {
-      break;
+    if ((*nactive_ptr > max_active) && (iter >= 1)) {    // Need at least two iterations before stopping based on active set
+        break;                                           // Should raise a warning that problem is not solved.
     }
 
   }
