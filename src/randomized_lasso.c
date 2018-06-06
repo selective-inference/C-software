@@ -1,5 +1,4 @@
 #include <math.h> // for fabs
-#include <stdio.h>
 
 // Augmented density for randomized LASSO after
 // Gaussian randomization

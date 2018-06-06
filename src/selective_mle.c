@@ -1,5 +1,4 @@
 #include <math.h> // for fabs
-#include <stdio.h>
 
 // Barrier for smooth MLE approximation
 // after Gaussian randomization
