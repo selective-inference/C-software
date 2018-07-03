@@ -282,7 +282,6 @@ double barrier_objective_affine(double *opt_variable,               // Optimizat
   for (icon=0; icon<ncon; icon++) {
     scaling_ptr = ((double *) scaling + icon);
     affine_term_ptr = ((double *) affine_term + icon);
-    // fprintf(stderr, "logval %f\n", log(((*affine_term_ptr) + (*scaling_ptr)) / (*affine_term_ptr)));
     value += log(((*affine_term_ptr) + (*scaling_ptr)) / (*affine_term_ptr));
   }
   
@@ -348,7 +347,6 @@ void barrier_gradient_affine(double *gradient,                   // Gradient vec
       linear_term_ptr = ((double *) linear_term + ncon * idim + icon);   // matrices are in column-major order for R!
       *gradient_ptr -= (*linear_term_ptr) * (1. / ((*affine_term_ptr) + (*scaling_ptr)) - 1. / (*affine_term_ptr));
     }
-    // fprintf(stderr, "gradient %d %f\n", idim, *gradient_ptr);
   }
 }
 
@@ -497,15 +495,11 @@ double barrier_solve_affine(double *gradient,                   // Gradient vect
 	}
       }
 
-      // fprintf(stderr, "anyneg %d\n", any_negative);
-
       if (any_negative == 0) {
 	break;
       }
       step = step * 0.5;
       istep++;
-
-      // fprintf(stderr, "%f %d %d istep\n", step, any_negative, istep);
 
       if (istep == 50) {
 	break;            // Terminate eventually -- but this will be a failure.
@@ -529,7 +523,6 @@ double barrier_solve_affine(double *gradient,                   // Gradient vect
 						    step,
 						    ndim,
 						    ncon);
-      // fprintf(stderr, "values %f %f %f %f\n", step, proposed_value, current_value, proposed_value - current_value);
 
       if (proposed_value < current_value) {
 	for (idim=0; idim<ndim; idim++) {
