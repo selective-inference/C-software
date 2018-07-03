@@ -93,7 +93,7 @@ void barrier_gradient(double *gradient,                   // Gradient vector
     // now log term
 
     scaling_ptr = ((double *) scaling + idim);
-    *gradient_ptr = *gradient_ptr + 1. / ((*opt_variable_ptr) + (*scaling_ptr)) - 1. / (*opt_variable_ptr);
+    *gradient_ptr += 1. / ((*opt_variable_ptr) + (*scaling_ptr)) - 1. / (*opt_variable_ptr);
   }
 
 }
@@ -202,6 +202,7 @@ double barrier_solve(double *gradient,                   // Gradient vector
 	  opt_variable_ptr = ((double *) opt_variable + idim);
 	  opt_proposed_ptr = ((double *) opt_proposed + idim);
 	  *opt_variable_ptr = *opt_proposed_ptr;
+	  current_value = proposed_value;
 	}
 	break;
       }
@@ -246,6 +247,13 @@ double barrier_objective_affine(double *opt_variable,               // Optimizat
   double *affine_term_ptr;
   double product_entry, value;
 
+  set_affine_term(opt_variable,
+		  linear_term,             
+		  offset,                  
+		  affine_term,             
+		  ndim,                        
+		  ncon);
+
   value = 0.;
   for (idim=0; idim<ndim; idim++) {
     
@@ -274,6 +282,7 @@ double barrier_objective_affine(double *opt_variable,               // Optimizat
   for (icon=0; icon<ncon; icon++) {
     scaling_ptr = ((double *) scaling + icon);
     affine_term_ptr = ((double *) affine_term + icon);
+    // fprintf(stderr, "logval %f\n", log(((*affine_term_ptr) + (*scaling_ptr)) / (*affine_term_ptr)));
     value += log(((*affine_term_ptr) + (*scaling_ptr)) / (*affine_term_ptr));
   }
   
@@ -303,6 +312,13 @@ void barrier_gradient_affine(double *gradient,                   // Gradient vec
   double *linear_term_ptr;
   double product_entry;
 
+  set_affine_term(opt_variable,
+		  linear_term,             
+		  offset,                  
+		  affine_term,             
+		  ndim,                        
+		  ncon);
+
   for (idim=0; idim<ndim; idim++) {
     
     gradient_ptr = ((double *) gradient + idim);
@@ -317,7 +333,6 @@ void barrier_gradient_affine(double *gradient,                   // Gradient vec
       product_entry += (*precision_ptr) * (*opt_variable_ptr);
     }
       
-    opt_variable_ptr = ((double *) opt_variable + idim);
     *gradient_ptr = product_entry;
 
     // now add linear term
@@ -325,23 +340,24 @@ void barrier_gradient_affine(double *gradient,                   // Gradient vec
     conjugate_arg_ptr = ((double *) conjugate_arg + idim);
     *gradient_ptr -= (*conjugate_arg_ptr);
 
-    // now log term
+    // now log term: A.T.dot(gradient of barrier)
 
     for (icon=0; icon<ncon; icon++) {
       scaling_ptr = ((double *) scaling + icon);
       affine_term_ptr = ((double *) affine_term + icon);
-      linear_term_ptr = ((double *) linear_term + ncon * idim + icon);   // matrices are in column-major order!
-      *gradient_ptr = *gradient_ptr + (*linear_term_ptr) * (1. / ((*affine_term_ptr) + (*scaling_ptr)) - 1. / (*affine_term_ptr));
+      linear_term_ptr = ((double *) linear_term + ncon * idim + icon);   // matrices are in column-major order for R!
+      *gradient_ptr -= (*linear_term_ptr) * (1. / ((*affine_term_ptr) + (*scaling_ptr)) - 1. / (*affine_term_ptr));
     }
+    // fprintf(stderr, "gradient %d %f\n", idim, *gradient_ptr);
   }
 }
 
-void update_affine_term(double *opt_variable,               // Optimization variable
-			double *linear_term,                // Matrix A in constraint Au \leq b
-			double *offset,                     // Offset b in constraint Au \leq b
-			double *affine_term,                // Should be equal to b - A.dot(opt_variable)    
-			int ndim,                           // Dimension of conjugate_arg, precision
-			int ncon)                           // Number of constraints
+void set_affine_term(double *opt_variable,               // Optimization variable
+		     double *linear_term,                // Matrix A in constraint Au \leq b
+		     double *offset,                     // Offset b in constraint Au \leq b
+		     double *affine_term,                // Should be equal to b - A.dot(opt_variable)    
+		     int ndim,                           // Dimension of conjugate_arg, precision
+		     int ncon)                           // Number of constraints
 {
   int idim, icon;
   double *linear_term_ptr;
@@ -352,18 +368,16 @@ void update_affine_term(double *opt_variable,               // Optimization vari
 
   for (icon=0; icon<ncon; icon++) {
 
-    opt_variable_ptr = ((double *) opt_variable);
-
     affine_entry = 0;
-    linear_term_ptr = ((double *) linear_term + icon);  // matrices are in column-major order!
 
     for (idim=0; idim<ndim; idim++) {
-	affine_entry -= (*linear_term_ptr) * (*opt_variable_ptr);
-	opt_variable_ptr++;
-	linear_term_ptr += ncon;
+      linear_term_ptr = ((double *) linear_term + icon + idim * ncon);  // matrices are in column-major order for R!
+      opt_variable_ptr = ((double *) opt_variable + idim);
+      affine_entry -= (*linear_term_ptr) * (*opt_variable_ptr);
     }
+
     offset_ptr = ((double *) offset + icon);
-    affine_entry += (*offset_ptr);      // one entry of -(Au-b)
+    affine_entry += (*offset_ptr);      // one entry of b-Au
 
     affine_term_ptr = ((double *) affine_term + icon);
     *affine_term_ptr = affine_entry;
@@ -379,15 +393,18 @@ double barrier_gradient_step_affine(double *gradient,                   // Gradi
 				    double *scaling,                    // Diagonal scaling matrix for log barrier
 				    double *linear_term,                // Matrix A in constraint Au \leq b
 				    double *offset,                     // Offset b in constraint Au \leq b
-				    double *affine_term,                // Should be equal to b - A.dot(opt_variable)    
+				    double *affine_term,                // Should be equal to b - A.dot(opt_variable)   
 				    double step,                        // Step size for gradient step
 				    int ndim,                           // Dimension of conjugate_arg, precision
 				    int ncon)                           // Number of constraints
 {
   int idim;
+  double value;
   double *gradient_ptr;
   double *opt_variable_ptr;
   double *opt_proposed_ptr;
+
+  // Gradient step stored in opt_proposed
 
   for (idim=0; idim<ndim; idim++) {
     opt_variable_ptr = ((double *) opt_variable + idim);
@@ -396,22 +413,17 @@ double barrier_gradient_step_affine(double *gradient,                   // Gradi
     *opt_proposed_ptr = (*opt_variable_ptr) - step * (*gradient_ptr);
   }
 
-  update_affine_term(opt_variable,               
-		     linear_term,             
-		     offset,                  
-		     affine_term,             
-		     ndim,                        
-		     ncon);
+  value = barrier_objective_affine(opt_proposed,
+				   conjugate_arg,         
+				   precision,             
+				   scaling,               
+				   linear_term,
+				   offset,
+				   affine_term,
+				   ndim,
+				   ncon);
 
-  return barrier_objective_affine(opt_proposed,
-				  conjugate_arg,         
-				  precision,             
-				  scaling,               
-				  linear_term,
-				  offset,
-				  affine_term,
-				  ndim,
-				  ncon);
+  return(value);
 }
 
 double barrier_solve_affine(double *gradient,                   // Gradient vector
@@ -478,18 +490,23 @@ double barrier_solve_affine(double *gradient,                   // Gradient vect
 	for (idim=0; idim<ndim; idim++) {
 	  linear_term_ptr = ((double *) linear_term + icon + idim * ncon);
 	  gradient_ptr = ((double *) gradient + idim);
-	  affine_updated -= (*linear_term_ptr) * (*gradient_ptr) * step;
+	  affine_updated += (*linear_term_ptr) * (*gradient_ptr) * step;
 	}
 	if (affine_updated < 0) {
 	  any_negative += 1;
 	}
       }
 
+      // fprintf(stderr, "anyneg %d\n", any_negative);
+
       if (any_negative == 0) {
 	break;
       }
       step = step * 0.5;
       istep++;
+
+      // fprintf(stderr, "%f %d %d istep\n", step, any_negative, istep);
+
       if (istep == 50) {
 	break;            // Terminate eventually -- but this will be a failure.
 	                  // Should mean that opt_variable is in feasible.
@@ -512,12 +529,15 @@ double barrier_solve_affine(double *gradient,                   // Gradient vect
 						    step,
 						    ndim,
 						    ncon);
+      // fprintf(stderr, "values %f %f %f %f\n", step, proposed_value, current_value, proposed_value - current_value);
+
       if (proposed_value < current_value) {
 	for (idim=0; idim<ndim; idim++) {
 	  opt_variable_ptr = ((double *) opt_variable + idim);
 	  opt_proposed_ptr = ((double *) opt_proposed + idim);
 	  *opt_variable_ptr = *opt_proposed_ptr;
 	}
+	current_value = proposed_value;
 	break;
       }
       step = step * 0.5;
@@ -533,7 +553,6 @@ double barrier_solve_affine(double *gradient,                   // Gradient vect
       current_value = proposed_value;
       break;
     }
-    current_value = proposed_value;
     
   }
 
