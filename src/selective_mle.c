@@ -227,6 +227,41 @@ double barrier_solve(double *gradient,                   // Gradient vector
 
 }
 
+// Below, the constraints are composed with an affine function, i.e. Au \leq b, rather than u \geq 0
+
+void set_affine_term(double *opt_variable,               // Optimization variable
+		     double *linear_term,                // Matrix A in constraint Au \leq b
+		     double *offset,                     // Offset b in constraint Au \leq b
+		     double *affine_term,                // Should be equal to b - A.dot(opt_variable)    
+		     int ndim,                           // Dimension of conjugate_arg, precision
+		     int ncon)                           // Number of constraints
+{
+  int idim, icon;
+  double *linear_term_ptr;
+  double *affine_term_ptr;
+  double *offset_ptr;
+  double *opt_variable_ptr;
+  double affine_entry;
+
+  for (icon=0; icon<ncon; icon++) {
+
+    affine_entry = 0;
+
+    for (idim=0; idim<ndim; idim++) {
+      linear_term_ptr = ((double *) linear_term + icon + idim * ncon);  // matrices are in column-major order for R!
+      opt_variable_ptr = ((double *) opt_variable + idim);
+      affine_entry -= (*linear_term_ptr) * (*opt_variable_ptr);
+    }
+
+    offset_ptr = ((double *) offset + icon);
+    affine_entry += (*offset_ptr);      // one entry of b-Au
+
+    affine_term_ptr = ((double *) affine_term + icon);
+    *affine_term_ptr = affine_entry;
+  }
+
+}
+
 //    objective = lambda u: -u.T.dot(conjugate_arg) + u.T.dot(precision).dot(u)/2. + np.log(1.+ 1./(b - A.dot(u) / scaling)).sum()
 
 double barrier_objective_affine(double *opt_variable,               // Optimization variable
@@ -348,39 +383,6 @@ void barrier_gradient_affine(double *gradient,                   // Gradient vec
       *gradient_ptr -= (*linear_term_ptr) * (1. / ((*affine_term_ptr) + (*scaling_ptr)) - 1. / (*affine_term_ptr));
     }
   }
-}
-
-void set_affine_term(double *opt_variable,               // Optimization variable
-		     double *linear_term,                // Matrix A in constraint Au \leq b
-		     double *offset,                     // Offset b in constraint Au \leq b
-		     double *affine_term,                // Should be equal to b - A.dot(opt_variable)    
-		     int ndim,                           // Dimension of conjugate_arg, precision
-		     int ncon)                           // Number of constraints
-{
-  int idim, icon;
-  double *linear_term_ptr;
-  double *affine_term_ptr;
-  double *offset_ptr;
-  double *opt_variable_ptr;
-  double affine_entry;
-
-  for (icon=0; icon<ncon; icon++) {
-
-    affine_entry = 0;
-
-    for (idim=0; idim<ndim; idim++) {
-      linear_term_ptr = ((double *) linear_term + icon + idim * ncon);  // matrices are in column-major order for R!
-      opt_variable_ptr = ((double *) opt_variable + idim);
-      affine_entry -= (*linear_term_ptr) * (*opt_variable_ptr);
-    }
-
-    offset_ptr = ((double *) offset + icon);
-    affine_entry += (*offset_ptr);      // one entry of b-Au
-
-    affine_term_ptr = ((double *) affine_term + icon);
-    *affine_term_ptr = affine_entry;
-  }
-
 }
 
 double barrier_gradient_step_affine(double *gradient,                   // Gradient vector
