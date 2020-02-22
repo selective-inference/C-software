@@ -108,7 +108,7 @@ void _update_outer_2nd(double *linear_pred_ptr,     /* Linear term in objective 
 {
   long idx;
   long order_idx, rankmin_idx;
-  double linear_pred, right_vector;
+  double linear_pred;
   long censoring;
   double *expZ_accum, *exp_accum, *outer_2nd_accum;
   double cur_val_num = 0;
@@ -199,6 +199,7 @@ void _cox_gradient(double *gradient_ptr,        /* Where gradient is stored */
 
 void _cox_hessian(double *hessian_ptr,          /* Where hessian is stored */
 		  double *linear_pred_ptr,      /* Linear term in objective */
+		  double *right_vector_ptr,     /* Right vector in Hessian */
 		  double *outer_1st_accum_ptr,  /* outer accumulation vector used in outer prod "mean"*/
 		  double *outer_2nd_accum_ptr,  /* outer accumulation vector used in "2nd" moment*/
 		  long *censoring_ptr,          /* censoring indicator */
@@ -208,7 +209,7 @@ void _cox_hessian(double *hessian_ptr,          /* Where hessian is stored */
 		  )
 {
   long idx, rankmax_idx;
-  double linear_pred, outer_1st_accum, outer_2nd_accum;
+  double linear_pred, outer_1st_accum, outer_2nd_accum, right_vector;
   double *hessian;
   long censoring;
 
@@ -219,13 +220,13 @@ void _cox_hessian(double *hessian_ptr,          /* Where hessian is stored */
   // fill in entries of hessian
 
   for (idx=0; idx<ncase; idx++) {
-    censoring = *((long *) censoring_ptr + idx);
     rankmax_idx = *((long *) rankmax_ptr + idx);
     outer_1st_accum = *((double *) outer_1st_accum_ptr + rankmax_idx);
     outer_2nd_accum = *((double *) outer_2nd_accum_ptr + rankmax_idx);
     linear_pred = *((double *) linear_pred_ptr + idx);
+    right_vector = *((double *) right_vector_ptr + idx);
     hessian = ((double *) hessian_ptr + idx);
-    *hessian =  exp(linear_pred) * (outer_1st_accum - outer_2nd_accum);
+    *hessian =  exp(linear_pred) * (outer_1st_accum * right_vector - outer_2nd_accum);
   }
 
 }

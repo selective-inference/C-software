@@ -61,6 +61,7 @@ void _cox_gradient(double *gradient_ptr,        /* Where gradient is stored */
 
 void _cox_hessian(double *hessian_ptr,          /* Where hessian is stored */
 		  double *linear_pred_ptr,      /* Linear term in objective */
+		  double *right_vector_ptr,     /* Right vector in Hessian */
 		  double *outer_accum_1st_ptr,  /* outer accumulation vector used in outer prod "mean"*/
 		  double *outer_accum_2nd_ptr,  /* outer accumulation vector used in "2nd" moment*/
 		  long *censoring_ptr,          /* censoring indicator */
