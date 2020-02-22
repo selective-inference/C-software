@@ -8,6 +8,7 @@
 // so it is ordered according to argsort(T)
 
 void _update_cox_exp(double *linear_pred_ptr, /* Linear term in objective */
+		     double *exp_ptr,         /* stores exp(eta) */
 		     double *exp_accum_ptr,   /* inner accumulation vector */
 		     long *censoring_ptr,     /* censoring indicator */
 		     long *ordering_ptr,      /* 0-based ordering of times */
@@ -20,6 +21,7 @@ void _update_cox_exp(double *linear_pred_ptr, /* Linear term in objective */
   double linear_pred;
   long censoring;
   double *exp_accum, *outer_accum;
+  double *exp_val_ptr;
   double cur_val = 0;
 
   // reversed reverse cumsum of exp(eta)
@@ -27,7 +29,9 @@ void _update_cox_exp(double *linear_pred_ptr, /* Linear term in objective */
   for (idx=0; idx<ncase; idx++) {
     order_idx = *((long *) ordering_ptr + (ncase - 1 - idx));
     linear_pred = *((double *) linear_pred_ptr + order_idx);
-    cur_val = cur_val + exp(linear_pred);
+    exp_val_ptr = ((double *) exp_ptr + order_idx);
+    *exp_val_ptr = exp(linear_pred);
+    cur_val = cur_val + (*exp_val_ptr);
     exp_accum = ((double *) exp_accum_ptr + (ncase - 1 - idx));
     *exp_accum = cur_val;
   }
@@ -36,6 +40,7 @@ void _update_cox_exp(double *linear_pred_ptr, /* Linear term in objective */
 
 void _update_cox_expZ(double *linear_pred_ptr,  /* Linear term in objective */
 		      double *right_vector_ptr, /* Linear term in objective */
+		      double *exp_ptr,          /* stores exp(eta) */
 		      double *expZ_accum_ptr,   /* inner accumulation vector */
 		      long *censoring_ptr,      /* censoring indicator */
 		      long *ordering_ptr,       /* 0-based ordering of times */
@@ -45,7 +50,7 @@ void _update_cox_expZ(double *linear_pred_ptr,  /* Linear term in objective */
 {
   long idx;
   long order_idx, rankmin_idx;
-  double linear_pred, right_vector;
+  double linear_pred, right_vector, exp_val;
   long censoring;
   double *expZ_accum, *outer_accum;
   double cur_val = 0;
@@ -54,9 +59,10 @@ void _update_cox_expZ(double *linear_pred_ptr,  /* Linear term in objective */
 
   for (idx=0; idx<ncase; idx++) {
     order_idx = *((long *) ordering_ptr + (ncase - 1 - idx));
-    linear_pred = *((double *) linear_pred_ptr + order_idx);
+    // linear_pred = *((double *) linear_pred_ptr + order_idx);
+    exp_val = *((double *) exp_ptr + order_idx);
     right_vector = *((double *) right_vector_ptr + order_idx);
-    cur_val = cur_val + right_vector * exp(linear_pred);
+    cur_val = cur_val + right_vector * exp_val;
     expZ_accum = ((double *) expZ_accum_ptr + (ncase - 1 - idx));
     *expZ_accum = cur_val;
   }
@@ -166,7 +172,7 @@ double _cox_objective(double *linear_pred_ptr,     /* Linear term in objective *
 }
 
 void _cox_gradient(double *gradient_ptr,        /* Where gradient is stored */
-		   double *linear_pred_ptr,     /* Linear term in objective */
+		   double *exp_ptr,             /* stores exp(eta) */
 		   double *outer_1st_accum_ptr, /* outer accumulation vector */
 		   long *censoring_ptr,         /* censoring indicator */
 		   long *ordering_ptr,          /* 0-based ordering of times */
@@ -176,7 +182,7 @@ void _cox_gradient(double *gradient_ptr,        /* Where gradient is stored */
 		   )
 {
   long idx, rankmax_idx;
-  double linear_pred, outer_1st_accum;
+  double outer_1st_accum, exp_val;
   double *gradient;
   long censoring;
 
@@ -190,15 +196,15 @@ void _cox_gradient(double *gradient_ptr,        /* Where gradient is stored */
     censoring = *((long *) censoring_ptr + idx);
     rankmax_idx = *((long *) rankmax_ptr + idx);
     outer_1st_accum = *((double *) outer_1st_accum_ptr + rankmax_idx);
-    linear_pred = *((double *) linear_pred_ptr + idx);
+    exp_val = *((double *) exp_ptr + idx);
     gradient = ((double *) gradient_ptr + idx);
-    *gradient = outer_1st_accum * exp(linear_pred) - censoring;
+    *gradient = outer_1st_accum * exp_val - censoring;
   }
 
 }
 
 void _cox_hessian(double *hessian_ptr,          /* Where hessian is stored */
-		  double *linear_pred_ptr,      /* Linear term in objective */
+		  double *exp_ptr,              /* stores exp(eta) */
 		  double *right_vector_ptr,     /* Right vector in Hessian */
 		  double *outer_1st_accum_ptr,  /* outer accumulation vector used in outer prod "mean"*/
 		  double *outer_2nd_accum_ptr,  /* outer accumulation vector used in "2nd" moment*/
@@ -209,7 +215,7 @@ void _cox_hessian(double *hessian_ptr,          /* Where hessian is stored */
 		  )
 {
   long idx, rankmax_idx;
-  double linear_pred, outer_1st_accum, outer_2nd_accum, right_vector;
+  double outer_1st_accum, outer_2nd_accum, right_vector, exp_val;
   double *hessian;
   long censoring;
 
@@ -223,10 +229,10 @@ void _cox_hessian(double *hessian_ptr,          /* Where hessian is stored */
     rankmax_idx = *((long *) rankmax_ptr + idx);
     outer_1st_accum = *((double *) outer_1st_accum_ptr + rankmax_idx);
     outer_2nd_accum = *((double *) outer_2nd_accum_ptr + rankmax_idx);
-    linear_pred = *((double *) linear_pred_ptr + idx);
+    exp_val = *((double *) exp_ptr + idx);
     right_vector = *((double *) right_vector_ptr + idx);
     hessian = ((double *) hessian_ptr + idx);
-    *hessian =  exp(linear_pred) * (outer_1st_accum * right_vector - outer_2nd_accum);
+    *hessian =  exp_val * (outer_1st_accum * right_vector - outer_2nd_accum);
   }
 
 }
