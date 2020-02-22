@@ -10,6 +10,7 @@
 void _update_cox_exp(double *linear_pred_ptr, /* Linear term in objective */
 		     double *exp_ptr,         /* stores exp(eta) */
 		     double *exp_accum_ptr,   /* inner accumulation vector */
+		     double *case_weight_ptr, /* case weights */
 		     long *censoring_ptr,     /* censoring indicator */
 		     long *ordering_ptr,      /* 0-based ordering of times */
 		     long *rankmin_ptr,       /* 0-based ranking with min tie breaking */
@@ -42,6 +43,7 @@ void _update_cox_expZ(double *linear_pred_ptr,  /* Linear term in objective */
 		      double *right_vector_ptr, /* Linear term in objective */
 		      double *exp_ptr,          /* stores exp(eta) */
 		      double *expZ_accum_ptr,   /* inner accumulation vector */
+		      double *case_weight_ptr,  /* case weights */
 		      long *censoring_ptr,      /* censoring indicator */
 		      long *ordering_ptr,       /* 0-based ordering of times */
 		      long *rankmin_ptr,        /* 0-based ranking with min tie breaking */
@@ -59,7 +61,6 @@ void _update_cox_expZ(double *linear_pred_ptr,  /* Linear term in objective */
 
   for (idx=0; idx<ncase; idx++) {
     order_idx = *((long *) ordering_ptr + (ncase - 1 - idx));
-    // linear_pred = *((double *) linear_pred_ptr + order_idx);
     exp_val = *((double *) exp_ptr + order_idx);
     right_vector = *((double *) right_vector_ptr + order_idx);
     cur_val = cur_val + right_vector * exp_val;
@@ -72,6 +73,7 @@ void _update_cox_expZ(double *linear_pred_ptr,  /* Linear term in objective */
 void _update_outer_1st(double *linear_pred_ptr,     /* Linear term in objective */
 		       double *exp_accum_ptr,       /* inner accumulation vector */
 		       double *outer_1st_accum_ptr, /* outer accumulation vector */
+		       double *case_weight_ptr,     /* case weights */
 		       long *censoring_ptr,         /* censoring indicator */
 		       long *ordering_ptr,          /* 0-based ordering of times */
 		       long *rankmin_ptr,           /* 0-based ranking with min tie breaking */
@@ -80,7 +82,7 @@ void _update_outer_1st(double *linear_pred_ptr,     /* Linear term in objective 
 {
   long idx;
   long order_idx, rankmin_idx;
-  double linear_pred;
+  double linear_pred, case_weight;
   long censoring;
   double *exp_accum, *outer_1st_accum;
   double cur_val = 0;
@@ -95,7 +97,8 @@ void _update_outer_1st(double *linear_pred_ptr,     /* Linear term in objective 
     rankmin_idx = *((long *) rankmin_ptr + order_idx);
     exp_accum = ((double *) exp_accum_ptr + rankmin_idx);
     censoring = *((long *) censoring_ptr + order_idx);
-    cur_val = cur_val + censoring / *exp_accum;
+    case_weight = *((double *) case_weight_ptr + order_idx);
+    cur_val = cur_val + censoring * case_weight / *exp_accum;
     outer_1st_accum = ((double *) outer_1st_accum_ptr + idx);
     *outer_1st_accum = cur_val;
   }
@@ -106,6 +109,7 @@ void _update_outer_2nd(double *linear_pred_ptr,     /* Linear term in objective 
 		       double *exp_accum_ptr,       /* inner accumulation vector e^{\eta} */
 		       double *expZ_accum_ptr,      /* inner accumulation vector  Ze^{\eta} */
 		       double *outer_2nd_accum_ptr, /* outer accumulation vector */
+		       double *case_weight_ptr,     /* case weights */
 		       long *censoring_ptr,         /* censoring indicator */
 		       long *ordering_ptr,          /* 0-based ordering of times */
 		       long *rankmin_ptr,           /* 0-based ranking with min tie breaking */
@@ -114,11 +118,9 @@ void _update_outer_2nd(double *linear_pred_ptr,     /* Linear term in objective 
 {
   long idx;
   long order_idx, rankmin_idx;
-  double linear_pred;
+  double linear_pred, case_weight;
   long censoring;
   double *expZ_accum, *exp_accum, *outer_2nd_accum;
-  double cur_val_num = 0;
-  double cur_val_den = 0;
   double cur_val = 0;
 
   // accumulate inverse cumsums at rankmin
@@ -131,7 +133,8 @@ void _update_outer_2nd(double *linear_pred_ptr,     /* Linear term in objective 
     expZ_accum = ((double *) expZ_accum_ptr + rankmin_idx);
     exp_accum = ((double *) exp_accum_ptr + rankmin_idx);
     censoring = *((long *) censoring_ptr + order_idx);
-    cur_val = cur_val + censoring * (*expZ_accum) / ((*exp_accum) * (*exp_accum));
+    case_weight = *((double *) case_weight_ptr + order_idx);
+    cur_val = cur_val + censoring * case_weight * (*expZ_accum) / ((*exp_accum) * (*exp_accum));
     outer_2nd_accum = ((double *) outer_2nd_accum_ptr + idx);
     *outer_2nd_accum = cur_val;
   }
@@ -141,8 +144,9 @@ void _update_outer_2nd(double *linear_pred_ptr,     /* Linear term in objective 
 // Objective value
 
 double _cox_objective(double *linear_pred_ptr,     /* Linear term in objective */
-		      double *inner_accum_ptr,     /* inner accumulation vector */
+		      double *exp_accum_ptr,       /* accumulation of exp(eta) */
 		      double *outer_1st_accum_ptr, /* outer accumulation vector */
+		      double *case_weight_ptr,     /* case weights */
 		      long *censoring_ptr,         /* censoring indicator */
 		      long *ordering_ptr,          /* 0-based ordering of times */
 		      long *rankmin_ptr,           /* 0-based ranking with min tie breaking */
@@ -151,7 +155,7 @@ double _cox_objective(double *linear_pred_ptr,     /* Linear term in objective *
 		      )       
 {
   long idx, rankmin_idx;
-  double linear_pred, inner_accum;
+  double linear_pred, exp_accum, case_weight;
   long censoring;
   double cur_val = 0;
 
@@ -161,10 +165,11 @@ double _cox_objective(double *linear_pred_ptr,     /* Linear term in objective *
 
   for (idx=0; idx<ncase; idx++) {
     rankmin_idx = *((long *) rankmin_ptr + idx);
-    inner_accum = *((double *) inner_accum_ptr + rankmin_idx);
+    exp_accum = *((double *) exp_accum_ptr + rankmin_idx);
     censoring = *((long *) censoring_ptr + idx);
+    case_weight = *((double *) case_weight_ptr + idx);
     linear_pred = *((double *) linear_pred_ptr + idx);
-    cur_val += (censoring) * (log(inner_accum) - linear_pred);
+    cur_val += censoring * case_weight * (log(exp_accum) - linear_pred);
   }
 
   return(cur_val);
@@ -174,6 +179,7 @@ double _cox_objective(double *linear_pred_ptr,     /* Linear term in objective *
 void _cox_gradient(double *gradient_ptr,        /* Where gradient is stored */
 		   double *exp_ptr,             /* stores exp(eta) */
 		   double *outer_1st_accum_ptr, /* outer accumulation vector */
+		   double *case_weight_ptr,     /* case weights */
 		   long *censoring_ptr,         /* censoring indicator */
 		   long *ordering_ptr,          /* 0-based ordering of times */
 		   long *rankmin_ptr,           /* 0-based ranking with min tie breaking */
@@ -182,7 +188,7 @@ void _cox_gradient(double *gradient_ptr,        /* Where gradient is stored */
 		   )
 {
   long idx, rankmax_idx;
-  double outer_1st_accum, exp_val;
+  double outer_1st_accum, exp_val, case_weight;
   double *gradient;
   long censoring;
 
@@ -194,11 +200,12 @@ void _cox_gradient(double *gradient_ptr,        /* Where gradient is stored */
 
   for (idx=0; idx<ncase; idx++) {
     censoring = *((long *) censoring_ptr + idx);
+    case_weight = *((double *) case_weight_ptr + idx);
     rankmax_idx = *((long *) rankmax_ptr + idx);
     outer_1st_accum = *((double *) outer_1st_accum_ptr + rankmax_idx);
     exp_val = *((double *) exp_ptr + idx);
     gradient = ((double *) gradient_ptr + idx);
-    *gradient = outer_1st_accum * exp_val - censoring;
+    *gradient = outer_1st_accum * exp_val - censoring * case_weight;
   }
 
 }
@@ -208,6 +215,7 @@ void _cox_hessian(double *hessian_ptr,          /* Where hessian is stored */
 		  double *right_vector_ptr,     /* Right vector in Hessian */
 		  double *outer_1st_accum_ptr,  /* outer accumulation vector used in outer prod "mean"*/
 		  double *outer_2nd_accum_ptr,  /* outer accumulation vector used in "2nd" moment*/
+		  double *case_weight_ptr,      /* case weights */
 		  long *censoring_ptr,          /* censoring indicator */
 		  long *ordering_ptr,           /* 0-based ordering of times */
 		  long *rankmax_ptr,            /* 0-based ranking with max tie breaking */
