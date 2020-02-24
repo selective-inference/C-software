@@ -19,9 +19,9 @@ void _update_cox_exp(double *linear_pred_ptr, /* Linear term in objective */
 {
   long idx;
   long order_idx, rankmin_idx;
-  double linear_pred;
+  double linear_pred, case_weight;
   long censoring;
-  double *exp_accum, *outer_accum;
+  double *exp_accum;
   double *exp_val_ptr;
   double cur_val = 0;
 
@@ -30,8 +30,9 @@ void _update_cox_exp(double *linear_pred_ptr, /* Linear term in objective */
   for (idx=0; idx<ncase; idx++) {
     order_idx = *((long *) ordering_ptr + (ncase - 1 - idx));
     linear_pred = *((double *) linear_pred_ptr + order_idx);
+    case_weight = *((double *) case_weight_ptr + order_idx);
     exp_val_ptr = ((double *) exp_ptr + order_idx);
-    *exp_val_ptr = exp(linear_pred);
+    *exp_val_ptr = exp(linear_pred) * case_weight;
     cur_val = cur_val + (*exp_val_ptr);
     exp_accum = ((double *) exp_accum_ptr + (ncase - 1 - idx));
     *exp_accum = cur_val;
@@ -54,7 +55,7 @@ void _update_cox_expZ(double *linear_pred_ptr,  /* Linear term in objective */
   long order_idx, rankmin_idx;
   double linear_pred, right_vector, exp_val;
   long censoring;
-  double *expZ_accum, *outer_accum;
+  double *expZ_accum;
   double cur_val = 0;
 
   // reversed reverse cumsum of exp(eta)
