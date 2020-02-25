@@ -18,9 +18,8 @@ void _update_cox_exp(double *linear_pred_ptr, /* Linear term in objective */
 		     )       
 {
   long idx;
-  long order_idx, rankmin_idx;
+  long order_idx;
   double linear_pred, case_weight;
-  long censoring;
   double *exp_accum;
   double *exp_val_ptr;
   double cur_val = 0;
@@ -52,9 +51,8 @@ void _update_cox_expZ(double *linear_pred_ptr,  /* Linear term in objective */
 		      )       
 {
   long idx;
-  long order_idx, rankmin_idx;
-  double linear_pred, right_vector, exp_val;
-  long censoring;
+  long order_idx;
+  double right_vector, exp_val;
   double *expZ_accum;
   double cur_val = 0;
 
@@ -83,7 +81,7 @@ void _update_outer_1st(double *linear_pred_ptr,     /* Linear term in objective 
 {
   long idx;
   long order_idx, rankmin_idx;
-  double linear_pred, case_weight;
+  double case_weight;
   long censoring;
   double *exp_accum, *outer_1st_accum;
   double cur_val = 0;
@@ -119,7 +117,7 @@ void _update_outer_2nd(double *linear_pred_ptr,     /* Linear term in objective 
 {
   long idx;
   long order_idx, rankmin_idx;
-  double linear_pred, case_weight;
+  double case_weight;
   long censoring;
   double *expZ_accum, *exp_accum, *outer_2nd_accum;
   double cur_val = 0;
@@ -226,7 +224,6 @@ void _cox_hessian(double *hessian_ptr,          /* Where hessian is stored */
   long idx, rankmax_idx;
   double outer_1st_accum, outer_2nd_accum, right_vector, exp_val;
   double *hessian;
-  long censoring;
 
   // ensure you have updated the inner / outer accumulation
   // vectors with current linear predictors
